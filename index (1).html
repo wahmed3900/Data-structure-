@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Structures Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8FC; --ink:#1B2559; --muted:#5B6690; --grid:#E3E8F4; --hl:#FFE14D; --on-hl:#1B2559;
+  --red:#D33F49; --green:#1E8A5A; --card:#FFFFFF; --line:#C9D3EA; --soft:#EDF1FA;
+  --sans:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#11162F; --ink:#E9EDFB; --muted:#9AA6CF; --grid:#1C2348; --hl:#F5D33A;
+    --red:#FF6B74; --green:#4CC38A; --card:#171E40; --line:#2C3770; --soft:#1B2350;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11162F; --ink:#E9EDFB; --muted:#9AA6CF; --grid:#1C2348; --hl:#F5D33A;
+  --red:#FF6B74; --green:#4CC38A; --card:#171E40; --line:#2C3770; --soft:#1B2350;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5;padding-bottom:84px}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px}
+header h1{font-size:2rem;font-weight:800;line-height:1.05;margin:4px 0 6px;letter-spacing:-0.02em}
+header p{margin:0;color:var(--muted)}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);font:600 .9rem var(--sans);padding:6px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.progress{font-size:.9rem;color:var(--muted)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;margin-top:18px}
+.chip{flex:none;border:2px solid var(--line);background:var(--card);color:var(--ink);font:600 .95rem var(--sans);padding:8px 14px;border-radius:10px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.desc{margin:6px 0 12px}
+.desc small{display:block;color:var(--muted);font-size:.88rem;margin-top:2px}
+
+.stage{position:relative;min-height:250px;border:2px solid var(--ink);border-radius:14px;background-color:var(--card);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;padding:30px 16px;overflow-x:auto;display:flex;align-items:center;justify-content:center}
+.stage.left{justify-content:flex-start}
+.empty{color:var(--muted);text-align:center;max-width:22ch}
+.node{position:relative;min-width:54px;height:46px;padding:0 10px;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--ink);border-radius:8px;background:var(--card);font:600 1.05rem var(--mono);color:var(--ink);flex:none;transition:background .2s,border-color .2s,transform .2s}
+.node.hl{background:var(--hl);color:var(--on-hl)}
+.node.found{border-color:var(--green);background:var(--green);color:#fff}
+.node.leaving{border-color:var(--red);transform:scale(.7);opacity:.3}
+.node.enter{animation:pop .3s ease-out}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.tag{position:absolute;font:600 .72rem var(--sans);color:var(--muted);white-space:nowrap}
+.col{display:flex;flex-direction:column;gap:6px;align-items:center;border:2px dashed var(--line);border-top:0;padding:8px 10px;border-radius:0 0 10px 10px;min-width:90px}
+.col .tag{left:calc(100% + 10px)}
+.row{display:flex;gap:6px;align-items:center;border:2px dashed var(--line);border-left:0;border-right:0;padding:16px 8px 26px}
+.row .tag,.chain .tag{top:calc(100% + 4px);left:50%;transform:translateX(-50%)}
+.chain{display:flex;align-items:center;gap:4px;padding:6px 4px 22px}
+.arrow{font:600 1.2rem var(--mono);color:var(--muted);padding:0 2px}
+.null{font:400 .9rem var(--mono);color:var(--muted);border:2px dashed var(--line);border-radius:8px;padding:10px 8px}
+svg.tree{display:block;flex:none}
+svg.tree line{stroke:var(--ink);stroke-width:2}
+svg.tree circle{fill:var(--card);stroke:var(--ink);stroke-width:2;transition:fill .2s}
+svg.tree circle.hl{fill:var(--hl)}
+svg.tree circle.found{fill:var(--green);stroke:var(--green)}
+svg.tree text{font:600 13px var(--mono);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.tree text.on{fill:var(--on-hl)} svg.tree text.onf{fill:#fff}
+
+.log{min-height:3em;margin:10px 2px;font-size:.98rem}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls input{width:92px;font:600 1rem var(--mono);padding:10px;border:2px solid var(--ink);border-radius:10px;background:var(--card);color:var(--ink)}
+.btn{font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:2px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:default}
+.hint-line{font-size:.85rem;color:var(--muted);flex-basis:100%}
+
+h2{font-size:1.3rem;margin:26px 0 8px;letter-spacing:-0.01em}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+td{padding:7px 4px;border-bottom:1px solid var(--line)}
+td:last-child{font-family:var(--mono);text-align:right}
+pre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font:400 .84rem/1.55 var(--mono);margin:8px 0}
+
+.prob{border:2px solid var(--line);background:var(--card);border-radius:12px;margin:10px 0}
+.prob.open{border-color:var(--ink)}
+.prob-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;background:none;border:0;color:var(--ink);padding:14px;cursor:pointer;font:600 1.05rem var(--sans)}
+.meta{display:block;font-weight:400;font-size:.85rem;color:var(--muted)}
+.done{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.85rem}
+.done.yes{background:var(--green);border-color:var(--green);color:#fff}
+.prob-body{padding:0 14px 16px}
+.prob-body p{margin:6px 0}
+.hint{background:var(--hl);color:var(--on-hl);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.95rem}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+.qcard{border:2px solid var(--ink);background:var(--card);border-radius:14px;padding:18px;margin-top:14px}
+.qnum{color:var(--muted);font-size:.9rem}
+.qtext{font-size:1.15rem;font-weight:600;margin:6px 0 14px}
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:400 1rem var(--sans);cursor:pointer}
+.opt.right{border-color:var(--green);background:var(--green);color:#fff}
+.opt.wrong{border-color:var(--red);background:var(--red);color:#fff}
+.explain{margin:12px 0 4px;padding:10px 12px;border-left:4px solid var(--hl);background:var(--soft);border-radius:0 8px 8px 0}
+.score{font-size:3rem;font-weight:800;line-height:1;margin:6px 0}
+.flash{min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer;user-select:none}
+.flash .term{font-size:1.6rem;font-weight:800}
+.flash .def{font-size:1.05rem;max-width:34ch}
+.flash .tap{color:var(--muted);font-size:.85rem;margin-top:14px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--ink);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav.tabs button{flex:1;max-width:220px;background:none;border:0;color:var(--muted);font:600 1rem var(--sans);padding:16px 8px;cursor:pointer;border-top:4px solid transparent;margin-top:-2px}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-top-color:var(--hl)}
+.intro{border:2px solid var(--ink);border-radius:14px;background:var(--card);padding:2px 16px;margin-top:18px}
+.intro summary{cursor:pointer;font-weight:700;padding:12px 0;font-size:1.05rem}
+.intro p{margin:4px 0 12px}
+.buckets{display:flex;flex-direction:column;gap:4px;width:100%;max-width:440px}
+.bucket{display:flex;align-items:center;gap:6px;min-height:50px;border-bottom:2px dashed var(--line);padding:2px 4px;border-radius:8px;overflow-x:auto}
+.bucket.hl{background:var(--hl)}
+.bidx{width:34px;font:600 .85rem var(--mono);color:var(--muted);flex:none;text-align:right;padding-right:8px}
+.bucket.hl .bidx{color:var(--on-hl)}
+.pair{font-size:.92rem}
+.bars{display:flex;align-items:flex-end;gap:6px;height:200px}
+.bar{width:34px;color:var(--ink);background:var(--card);border:2px solid var(--ink);border-radius:6px 6px 0 0;display:flex;justify-content:center;flex:none}
+.bar span{font:600 .78rem var(--mono);margin-top:4px}
+.bar.hl{background:var(--hl);color:var(--on-hl)}
+.bar.done{background:var(--green);border-color:var(--green);color:#fff}
+.tight .node{min-width:40px;padding:0 4px;font-size:.92rem}
+.node.out{opacity:.25}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Data Structures Lab</h1>
+    <p>Watch them move, solve real problems, then test yourself.</p>
+    <div class="toprow">
+      <div class="seg" role="group" aria-label="Code language">
+        <button data-lang="js">JavaScript</button>
+        <button data-lang="py">Python</button>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-viz">
+      <details class="intro" open>
+        <summary>New here? Start with this</summary>
+        <p><strong>What is a data structure?</strong> A way to organize information so a program can use it. Think of a shopping list, a filing cabinet, or a line at the bank. Each one is good at different jobs.</p>
+        <p><strong>What is Big O?</strong> A way to say how much slower something gets as you add more stuff. O(1) means instant at any size, like grabbing the first item on a list. O(n) means you might check every item, like asking each person in a line. O(log n) means you cut the work in half each step, like a "higher or lower" guessing game.</p>
+        <p><strong>How to use this:</strong> Start with Array, then Hash map, then move left to right. Tap a button and read the message under the picture. Then try Practice, then Quiz.</p>
+      </details>
+      <div class="chips" id="dsChips"></div>
+      <div class="desc" id="dsDesc"></div>
+      <div class="stage" id="stage"></div>
+      <p class="log" id="log" aria-live="polite"></p>
+      <div class="controls" id="controls"></div>
+      <h2>Speed of each operation</h2>
+      <table id="bigO"></table>
+      <h2>The code</h2>
+      <pre id="dsCode"></pre>
+    </section>
+
+    <section id="view-practice" hidden>
+      <h2 style="margin-top:22px">Practice problems</h2>
+      <p style="color:var(--muted);margin:0 0 6px">Try each one first. Open hints one at a time before peeking at the solution.</p>
+      <div id="probList"></div>
+    </section>
+
+    <section id="view-quiz" hidden>
+      <div class="toprow" style="margin-top:22px">
+        <div class="seg" role="group" aria-label="Quiz mode">
+          <button data-mode="quiz">Quiz</button>
+          <button data-mode="cards">Flashcards</button>
+        </div>
+      </div>
+      <div id="quizArea"></div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="viz">Visualize</button>
+  <button role="tab" data-tab="practice">Practice</button>
+  <button role="tab" data-tab="quiz">Quiz</button>
+</nav>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 120) : ms));
+
+/* ---------- saved progress ---------- */
+let saved = { lang: 'js', solved: {}, best: 0 };
+try { const s = JSON.parse(localStorage.getItem('dslab') || 'null'); if (s) saved = Object.assign(saved, s); } catch (e) {}
+function save(){ try { localStorage.setItem('dslab', JSON.stringify(saved)); } catch (e) {} renderProgress(); }
+function renderProgress(){
+  const n = Object.values(saved.solved).filter(Boolean).length;
+  const parts = [];
+  if (n) parts.push(`Solved ${n} of ${PROBLEMS.length}`);
+  if (saved.best) parts.push(`Best quiz ${saved.best}/${QUIZ.length}`);
+  $('#progress').textContent = parts.join('. ');
+}
+
+/* ---------- data structures ---------- */
+const DS = {
+  array: {
+    name: 'Array',
+    desc: 'A row of numbered boxes. Each box has an index, starting at 0. If you know the box number, you can jump straight to it.',
+    uses: 'Used for: almost everything. Shopping lists, game scores, songs in a playlist. The most common structure.',
+    hint: 'Type a number. For "Read box", the number is the box index.',
+    big: [['Read a box by index','O(1)'],['Add to end','O(1)'],['Insert at start','O(n)'],['Search for a value','O(n)']],
+    js: String.raw`const scores = [7, 3, 9, 1];
+
+scores[2];           // read box 2 -> 9, O(1)
+scores.push(5);      // add to end, O(1)
+scores.unshift(4);   // insert at start, O(n): everything shifts
+scores.indexOf(9);   // search, O(n): checks each box
+scores.pop();        // remove from end, O(1)`,
+    py: String.raw`scores = [7, 3, 9, 1]
+
+scores[2]            # read box 2 -> 9, O(1)
+scores.append(5)     # add to end, O(1)
+scores.insert(0, 4)  # insert at start, O(n): everything shifts
+scores.index(9)      # search, O(n): checks each box
+scores.pop()         # remove from end, O(1)`
+  },
+  map: {
+    name: 'Hash map',
+    desc: 'Stores pairs, like a contact list: a name (the key) and a number (the value). A math trick called hashing turns the key into a bucket number, so finding it is instant.',
+    uses: 'Used for: contacts, word counts, logins, caches. Called a dictionary in Python and a Map or object in JavaScript.',
+    hint: 'Type a word. Put gives it a random number as its value.',
+    big: [['Put (add or update)','O(1) avg'],['Get by key','O(1) avg'],['Delete by key','O(1) avg'],['Worst case (many collisions)','O(n)']],
+    js: String.raw`const ages = new Map();
+
+ages.set("cat", 4);     // put, O(1)
+ages.set("dog", 7);
+ages.get("cat");        // get -> 4, O(1)
+ages.has("owl");        // false
+ages.delete("dog");     // delete, O(1)
+
+// a plain object works too
+const counts = { cat: 4 };
+counts["dog"] = 7;`,
+    py: String.raw`ages = {}
+
+ages["cat"] = 4      # put, O(1)
+ages["dog"] = 7
+ages["cat"]          # get -> 4, O(1)
+"owl" in ages        # False
+del ages["dog"]      # delete, O(1)`
+  },
+  sort: {
+    name: 'Sorting',
+    desc: 'Putting items in order, smallest to biggest. Simple sorts compare neighbors again and again. They are easy to understand but slow on big lists.',
+    uses: 'Used for: leaderboards, sorting emails by date, and getting data ready for binary search.',
+    hint: 'Pick a sort and watch. Yellow means being compared, green means in its final spot.',
+    big: [['Bubble sort','O(n²)'],['Insertion sort','O(n²)'],['Insertion sort, almost sorted list','O(n)'],['Built-in sort (merge or quick sort)','O(n log n)']],
+    js: String.raw`function bubbleSort(arr) {
+  const a = [...arr];
+  for (let i = 0; i < a.length; i++) {
+    let swapped = false;
+    for (let j = 0; j < a.length - 1 - i; j++) {
+      if (a[j] > a[j + 1]) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]];   // swap
+        swapped = true;
+      }
+    }
+    if (!swapped) break;   // nothing moved, already sorted
+  }
+  return a;
+}
+
+function insertionSort(arr) {
+  const a = [...arr];
+  for (let i = 1; i < a.length; i++) {
+    const key = a[i];
+    let j = i - 1;
+    while (j >= 0 && a[j] > key) {
+      a[j + 1] = a[j];      // slide bigger items right
+      j--;
+    }
+    a[j + 1] = key;
+  }
+  return a;
+}
+
+// In real code, use the built-in. O(n log n).
+// JS sorts as text by default, so pass a compare function.
+[10, 9, 1].sort((x, y) => x - y);   // [1, 9, 10]`,
+    py: String.raw`def bubble_sort(arr):
+    a = arr[:]
+    for i in range(len(a)):
+        swapped = False
+        for j in range(len(a) - 1 - i):
+            if a[j] > a[j + 1]:
+                a[j], a[j + 1] = a[j + 1], a[j]   # swap
+                swapped = True
+        if not swapped:
+            break   # nothing moved, already sorted
+    return a
+
+def insertion_sort(arr):
+    a = arr[:]
+    for i in range(1, len(a)):
+        key = a[i]
+        j = i - 1
+        while j >= 0 and a[j] > key:
+            a[j + 1] = a[j]   # slide bigger items right
+            j -= 1
+        a[j + 1] = key
+    return a
+
+# In real code, use the built-in. O(n log n).
+sorted([10, 9, 1])   # [1, 9, 10]`
+  },
+  bsearch: {
+    name: 'Binary search',
+    desc: 'A fast way to find a number in a sorted list. Check the middle. Too small? Throw away the left half. Too big? Throw away the right half. Repeat.',
+    uses: 'Used for: finding a word in a dictionary, searching logs by date, the "guess my number" game. The list must be sorted first.',
+    hint: 'Type a number to find. Leave it empty to pick one from the list.',
+    big: [['Binary search (sorted list)','O(log n)'],['Checking one by one','O(n)'],['1,000 items','about 10 steps'],['1,000,000 items','about 20 steps']],
+    js: String.raw`function binarySearch(nums, target) {
+  let lo = 0, hi = nums.length - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (nums[mid] === target) return mid;
+    if (nums[mid] < target) lo = mid + 1;   // go right
+    else hi = mid - 1;                      // go left
+  }
+  return -1;   // not found
+}`,
+    py: String.raw`def binary_search(nums, target):
+    lo, hi = 0, len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[mid] < target:
+            lo = mid + 1    # go right
+        else:
+            hi = mid - 1    # go left
+    return -1   # not found`
+  },
+  stack: {
+    name: 'Stack',
+    desc: 'Like a stack of plates. You add and remove from the top only. Last in, first out.',
+    uses: 'Used for: undo buttons, the browser back button, matching brackets, function calls.',
+    big: [['Push (add to top)','O(1)'],['Pop (remove top)','O(1)'],['Peek (look at top)','O(1)'],['Search','O(n)']],
+    js: String.raw`class Stack {
+  constructor() { this.items = []; }
+  push(x) { this.items.push(x); }          // O(1)
+  pop() { return this.items.pop(); }       // O(1)
+  peek() { return this.items[this.items.length - 1]; }
+  isEmpty() { return this.items.length === 0; }
+}
+
+const s = new Stack();
+s.push(3); s.push(8);
+s.pop();   // 8`,
+    py: String.raw`class Stack:
+    def __init__(self):
+        self.items = []
+
+    def push(self, x):
+        self.items.append(x)      # O(1)
+
+    def pop(self):
+        return self.items.pop()   # O(1)
+
+    def peek(self):
+        return self.items[-1]
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+s = Stack()
+s.push(3); s.push(8)
+s.pop()   # 8`
+  },
+  queue: {
+    name: 'Queue',
+    desc: 'Like a line at a store. Join at the back, leave from the front. First in, first out.',
+    uses: 'Used for: print jobs, task schedulers, breadth-first search, message queues.',
+    big: [['Enqueue (join back)','O(1)'],['Dequeue (leave front)','O(1)'],['Peek front','O(1)'],['Search','O(n)']],
+    js: String.raw`// array.shift() is O(n), so track a head index instead
+class Queue {
+  constructor() { this.items = {}; this.head = 0; this.tail = 0; }
+  enqueue(x) { this.items[this.tail++] = x; }   // O(1)
+  dequeue() {                                   // O(1)
+    const x = this.items[this.head];
+    delete this.items[this.head++];
+    return x;
+  }
+  peek() { return this.items[this.head]; }
+  get size() { return this.tail - this.head; }
+}`,
+    py: String.raw`from collections import deque
+
+q = deque()
+q.append(4)      # enqueue, O(1)
+q.append(9)
+q.popleft()      # dequeue, O(1) -> 4
+q[0]             # peek front -> 9
+
+# Avoid list.pop(0): it is O(n)`
+  },
+  list: {
+    name: 'Linked list',
+    desc: 'A chain of nodes. Each node holds a value and points to the next one. No indexes, you walk from the head.',
+    uses: 'Used for: playlists, LRU caches, building other structures like queues.',
+    big: [['Add to head','O(1)'],['Add to tail (no tail pointer)','O(n)'],['Find a value','O(n)'],['Remove a value','O(n)']],
+    js: String.raw`class Node {
+  constructor(val, next = null) { this.val = val; this.next = next; }
+}
+
+class LinkedList {
+  constructor() { this.head = null; }
+
+  addHead(val) { this.head = new Node(val, this.head); }   // O(1)
+
+  addTail(val) {                                           // O(n)
+    const n = new Node(val);
+    if (!this.head) { this.head = n; return; }
+    let cur = this.head;
+    while (cur.next) cur = cur.next;
+    cur.next = n;
+  }
+
+  find(val) {                                              // O(n)
+    let cur = this.head;
+    while (cur) {
+      if (cur.val === val) return cur;
+      cur = cur.next;
+    }
+    return null;
+  }
+
+  remove(val) {                                            // O(n)
+    if (!this.head) return;
+    if (this.head.val === val) { this.head = this.head.next; return; }
+    let cur = this.head;
+    while (cur.next && cur.next.val !== val) cur = cur.next;
+    if (cur.next) cur.next = cur.next.next;
+  }
+}`,
+    py: String.raw`class Node:
+    def __init__(self, val, next=None):
+        self.val = val
+        self.next = next
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def add_head(self, val):            # O(1)
+        self.head = Node(val, self.head)
+
+    def add_tail(self, val):            # O(n)
+        n = Node(val)
+        if not self.head:
+            self.head = n
+            return
+        cur = self.head
+        while cur.next:
+            cur = cur.next
+        cur.next = n
+
+    def find(self, val):                # O(n)
+        cur = self.head
+        while cur:
+            if cur.val == val:
+                return cur
+            cur = cur.next
+        return None
+
+    def remove(self, val):              # O(n)
+        if not self.head:
+            return
+        if self.head.val == val:
+            self.head = self.head.next
+            return
+        cur = self.head
+        while cur.next and cur.next.val != val:
+            cur = cur.next
+        if cur.next:
+            cur.next = cur.next.next`
+  },
+  bst: {
+    name: 'Binary search tree',
+    desc: 'Each node has up to two children. Smaller values go left, bigger go right. That rule makes searching fast.',
+    uses: 'Used for: sorted data, database indexes, autocomplete, range lookups.',
+    big: [['Insert','O(log n) avg'],['Find','O(log n) avg'],['Worst case (lopsided tree)','O(n)'],['In-order walk','O(n)']],
+    js: String.raw`class TreeNode {
+  constructor(val) { this.val = val; this.left = null; this.right = null; }
+}
+
+class BST {
+  constructor() { this.root = null; }
+
+  insert(val) {
+    const n = new TreeNode(val);
+    if (!this.root) { this.root = n; return; }
+    let cur = this.root;
+    while (true) {
+      if (val < cur.val) {
+        if (!cur.left) { cur.left = n; return; }
+        cur = cur.left;
+      } else if (val > cur.val) {
+        if (!cur.right) { cur.right = n; return; }
+        cur = cur.right;
+      } else return; // no duplicates
+    }
+  }
+
+  find(val) {
+    let cur = this.root;
+    while (cur) {
+      if (val === cur.val) return cur;
+      cur = val < cur.val ? cur.left : cur.right;
+    }
+    return null;
+  }
+
+  inOrder(node = this.root, out = []) {   // gives sorted order
+    if (node) {
+      this.inOrder(node.left, out);
+      out.push(node.val);
+      this.inOrder(node.right, out);
+    }
+    return out;
+  }
+}`,
+    py: String.raw`class TreeNode:
+    def __init__(self, val):
+        self.val = val
+        self.left = None
+        self.right = None
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, val):
+        n = TreeNode(val)
+        if not self.root:
+            self.root = n
+            return
+        cur = self.root
+        while True:
+            if val < cur.val:
+                if not cur.left:
+                    cur.left = n
+                    return
+                cur = cur.left
+            elif val > cur.val:
+                if not cur.right:
+                    cur.right = n
+                    return
+                cur = cur.right
+            else:
+                return  # no duplicates
+
+    def find(self, val):
+        cur = self.root
+        while cur:
+            if val == cur.val:
+                return cur
+            cur = cur.left if val < cur.val else cur.right
+        return None
+
+    def in_order(self, node="start", out=None):   # sorted order
+        if node == "start":
+            node = self.root
+        if out is None:
+            out = []
+        if node:
+            self.in_order(node.left, out)
+            out.append(node.val)
+            self.in_order(node.right, out)
+        return out`
+  }
+};
+
+/* ---------- visualizer state ---------- */
+const V = { ds: 'array', array: [7, 3, 9, 1], map: null, stack: [3, 8, 15], queue: [4, 9, 21], list: [2, 5, 7], bst: null, hl: new Set(), found: null, leaving: null, enter: null, busy: false };
+function bstInsert(node, v){ if (!node) return { v, l: null, r: null }; if (v < node.v) node.l = bstInsert(node.l, v); else if (v > node.v) node.r = bstInsert(node.r, v); return node; }
+function bstCount(n){ return n ? 1 + bstCount(n.l) + bstCount(n.r) : 0; }
+function bstHas(n, v){ while (n){ if (n.v === v) return true; n = v < n.v ? n.l : n.r; } return false; }
+function bstVals(n, out = []){ if (n){ bstVals(n.l, out); out.push(n.v); bstVals(n.r, out); } return out; }
+[50, 30, 70, 20, 40, 60, 80].forEach(v => V.bst = bstInsert(V.bst, v));
+const NB = 7;
+const hashOf = k => [...k].reduce((s, c) => s + c.charCodeAt(0), 0);
+const emptyMap = () => Array.from({ length: NB }, () => []);
+V.map = emptyMap();
+[['cat', 4], ['dog', 7], ['sun', 2]].forEach(([k, v]) => V.map[hashOf(k) % NB].push([k, v]));
+const WORDS = ['apple', 'bird', 'moon', 'tree', 'fish', 'star', 'book', 'rain', 'lion', 'cake', 'owl', 'pizza'];
+const mapKeys = () => V.map.flat().map(p => p[0]);
+const rand8 = () => Array.from({ length: 8 }, () => Math.floor(Math.random() * 90) + 5);
+function newBs(){ const s = new Set(); while (s.size < 12) s.add(Math.floor(Math.random() * 98) + 1); return [...s].sort((a, b) => a - b); }
+V.sort = rand8(); V.sorted = new Set(); V.bs = newBs(); V.lo = V.hi = V.mid = null;
+
+const MAX = 8, MAXTREE = 15;
+const log = t => { $('#log').textContent = t; };
+
+function cls(i, v){
+  const c = ['node'];
+  const key = V.ds === 'bst' ? v : i;
+  if (V.hl.has(key)) c.push('hl');
+  if (V.found === key) c.push('found');
+  if (V.leaving === key) c.push('leaving');
+  if (V.enter === key) c.push('enter');
+  return c.join(' ');
+}
+
+function renderStage(){
+  const st = $('#stage'); st.classList.remove('left');
+  const d = V.ds;
+  if (d === 'array'){
+    if (!V.array.length){ st.innerHTML = '<p class="empty">Empty array. Add a number to start.</p>'; return; }
+    st.innerHTML = '<div class="row">' + V.array.map((v, i) => `<div class="${cls(i)}">${v}<span class="tag">box ${i}</span></div>`).join('') + '</div>';
+    if (V.array.length > 4) st.classList.add('left');
+    return;
+  }
+  if (d === 'sort'){
+    st.innerHTML = '<div class="bars">' + V.sort.map((v, i) => `<div class="bar${V.hl.has(i) ? ' hl' : ''}${V.sorted.has(i) ? ' done' : ''}" style="height:${24 + v * 1.7}px"><span>${v}</span></div>`).join('') + '</div>';
+    return;
+  }
+  if (d === 'bsearch'){
+    st.classList.add('left');
+    st.innerHTML = '<div class="row tight">' + V.bs.map((v, i) => {
+      const out = V.lo !== null && (i < V.lo || i > V.hi);
+      const tags = [i === V.lo ? 'lo' : '', i === V.mid ? 'mid' : '', i === V.hi ? 'hi' : ''].filter(Boolean).join(' ');
+      const c = 'node' + (out ? ' out' : '') + (V.found === i ? ' found' : i === V.mid ? ' hl' : '');
+      return `<div class="${c}">${v}${tags ? `<span class="tag">${tags}</span>` : ''}</div>`;
+    }).join('') + '</div>';
+    return;
+  }
+  if (d === 'map'){
+    st.innerHTML = '<div class="buckets">' + V.map.map((b, i) => `<div class="bucket${V.hl.has(i) ? ' hl' : ''}"><span class="bidx">${i}</span>` +
+      b.map(([k, v]) => `<div class="node pair${V.found === k ? ' found' : ''}${V.leaving === k ? ' leaving' : ''}${V.enter === k ? ' enter' : ''}">${esc(k)}: ${v}</div>`).join('') + '</div>').join('') + '</div>';
+    return;
+  }
+  if (d === 'stack'){
+    if (!V.stack.length){ st.innerHTML = '<p class="empty">Empty stack. Push a number to start.</p>'; return; }
+    const top = V.stack.length - 1;
+    st.innerHTML = '<div class="col">' + V.stack.map((v, i) => `<div class="${cls(i)}">${v}${i === top ? '<span class="tag">top</span>' : ''}</div>`).reverse().join('') + '</div>';
+  } else if (d === 'queue'){
+    if (!V.queue.length){ st.innerHTML = '<p class="empty">Empty queue. Enqueue a number to start.</p>'; return; }
+    const last = V.queue.length - 1;
+    st.innerHTML = '<div class="row">' + V.queue.map((v, i) => `<div class="${cls(i)}">${v}${i === 0 ? '<span class="tag">front</span>' : i === last ? '<span class="tag">back</span>' : ''}</div>`).join('') + '</div>';
+  } else if (d === 'list'){
+    st.classList.add('left');
+    if (!V.list.length){ st.innerHTML = '<div class="chain"><span class="null">head = null</span></div>'; return; }
+    st.innerHTML = '<div class="chain">' + V.list.map((v, i) => `<div class="${cls(i)}">${v}${i === 0 ? '<span class="tag">head</span>' : ''}</div><span class="arrow">→</span>`).join('') + '<span class="null">null</span></div>';
+  } else {
+    if (!V.bst){ st.innerHTML = '<p class="empty">Empty tree. Insert a number to plant the root.</p>'; return; }
+    let i = 0, depth = 0; const pts = [];
+    (function lay(n, dpt, parent){ if (!n) return; const me = { v: n.v, d: dpt, parent }; lay(n.l, dpt + 1, me); me.x = i++; pts.push(me); depth = Math.max(depth, dpt); lay(n.r, dpt + 1, me); })(V.bst, 0, null);
+    const GX = 46, GY = 62, P = 26;
+    const X = p => P + p.x * GX, Y = p => P + p.d * GY;
+    const W = P * 2 + (i - 1) * GX, H = P * 2 + depth * GY;
+    let s = `<svg class="tree" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Binary search tree">`;
+    pts.forEach(p => { if (p.parent) s += `<line x1="${X(p.parent)}" y1="${Y(p.parent)}" x2="${X(p)}" y2="${Y(p)}"/>`; });
+    pts.forEach(p => {
+      const f = V.found === p.v, h = V.hl.has(p.v);
+      s += `<circle cx="${X(p)}" cy="${Y(p)}" r="19" class="${f ? 'found' : h ? 'hl' : ''}"/><text x="${X(p)}" y="${Y(p)}" class="${f ? 'onf' : h ? 'on' : ''}">${p.v}</text>`;
+    });
+    st.innerHTML = s + '</svg>';
+    if (W > st.clientWidth - 32) st.classList.add('left');
+  }
+}
+
+const OPS = {
+  array: [['aread','Read box',1],['aend','Add to end'],['astart','Insert at start'],['asearch','Search'],['apop','Remove end'],['clear','Clear']],
+  map:   [['mput','Put',1],['mget','Get'],['mdel','Delete'],['clear','Clear']],
+  sort:  [['bubble','Bubble sort',1],['insertion','Insertion sort'],['shuffle','Shuffle']],
+  bsearch: [['bs','Search',1],['bsnew','New list']],
+  stack: [['push','Push',1],['pop','Pop'],['peek','Peek'],['clear','Clear']],
+  queue: [['enq','Enqueue',1],['deq','Dequeue'],['front','Peek front'],['clear','Clear']],
+  list:  [['head','Add to head',1],['tail','Add to tail'],['find','Find'],['remove','Remove'],['clear','Clear']],
+  bst:   [['ins','Insert',1],['bfind','Find'],['walk','In-order walk'],['clear','Clear']]
+};
+
+function renderViz(){
+  const d = DS[V.ds];
+  $('#dsChips').innerHTML = Object.keys(DS).map(k => `<button class="chip" data-ds="${k}" aria-pressed="${k === V.ds}">${DS[k].name}</button>`).join('');
+  $('#dsDesc').innerHTML = `${esc(d.desc)}<small>${esc(d.uses)}</small>`;
+  $('#controls').innerHTML = (V.ds === 'sort' ? '' : V.ds === 'map' ? `<input id="val" type="text" maxlength="10" autocapitalize="off" autocomplete="off" placeholder="Word" aria-label="Key" style="width:130px">` : `<input id="val" type="number" inputmode="numeric" placeholder="Number" aria-label="Value">`) +
+    OPS[V.ds].map(([id, label, p]) => `<button class="btn${p ? ' primary' : ''}" data-op="${id}">${label}</button>`).join('') +
+    `<span class="hint-line">${esc(d.hint || 'Leave the box empty to use a random number.')}</span>`;
+  $('#bigO').innerHTML = d.big.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+  $('#dsCode').textContent = d[saved.lang];
+  log('Pick an operation below and watch what happens.');
+  renderStage();
+}
+
+function readVal(fallbackPool){
+  const el = $('#val'); const n = parseInt(el.value, 10); el.value = '';
+  if (!isNaN(n)) return Math.max(-999, Math.min(999, n));
+  if (fallbackPool && fallbackPool.length) return fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+  return Math.floor(Math.random() * 99) + 1;
+}
+function reset(){ V.hl = new Set(); V.found = null; V.leaving = null; V.enter = null; }
+
+async function runOp(op){
+  if (V.busy) return; V.busy = true; reset();
+  document.querySelectorAll('#controls .btn').forEach(b => b.disabled = true);
+  try { await OPFN[op](); } finally {
+    V.busy = false; V.enter = null;
+    document.querySelectorAll('#controls .btn').forEach(b => b.disabled = false);
+  }
+}
+
+function readKey(pool){
+  const el = $('#val'); let k = el.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10); el.value = '';
+  if (!k){ const src = pool && pool.length ? pool : WORDS; k = src[Math.floor(Math.random() * src.length)]; }
+  return k;
+}
+const hashMsg = k => { const s = hashOf(k); return `"${k}" turns into the number ${s}. Divide by ${NB} and the remainder is ${s % NB}, so it lives in bucket ${s % NB}.`; };
+
+const OPFN = {
+  async aread(){ if (!V.array.length) return log('The array is empty.');
+    let i = parseInt($('#val').value, 10); $('#val').value = '';
+    if (isNaN(i)) i = Math.floor(Math.random() * V.array.length);
+    if (i < 0 || i >= V.array.length) return log(`There is no box ${i}. This array has boxes 0 to ${V.array.length - 1}.`);
+    V.hl.add(i); renderStage(); log(`Box ${i} holds ${V.array[i]}. The computer jumped straight there in one step: O(1).`); await sleep(1100); reset(); renderStage(); },
+  async aend(){ if (V.array.length >= MAX) return log(`The array is full in this demo (${MAX} boxes). Remove one first.`);
+    const v = readVal(); V.array.push(v); V.enter = V.array.length - 1; renderStage(); log(`Added ${v} at the end, in box ${V.array.length - 1}. Nothing else had to move.`); },
+  async astart(){ if (V.array.length >= MAX) return log(`The array is full in this demo (${MAX} boxes). Remove one first.`);
+    const v = readVal();
+    for (let i = V.array.length - 1; i >= 0; i--){ V.hl = new Set([i]); renderStage(); log(`Moving ${V.array[i]} from box ${i} to box ${i + 1}...`); await sleep(340); }
+    reset(); V.array.unshift(v); V.enter = 0; renderStage(); log(`Inserted ${v} in box 0. Every other item had to move over first. More items means more moving: O(n).`); },
+  async asearch(){ if (!V.array.length) return log('The array is empty.');
+    const v = readVal(V.array);
+    for (let i = 0; i < V.array.length; i++){
+      V.hl = new Set([i]); renderStage(); await sleep(400);
+      if (V.array[i] === v){ reset(); V.found = i; renderStage(); log(`Found ${v} in box ${i} after checking ${i + 1} box${i ? 'es' : ''}. Without the box number, you have to look one by one.`); await sleep(1200); reset(); renderStage(); return; }
+    }
+    reset(); renderStage(); log(`${v} is not in the array. Checked all ${V.array.length} boxes.`); },
+  async apop(){ if (!V.array.length) return log('Nothing to remove. The array is empty.');
+    const i = V.array.length - 1, v = V.array[i]; V.leaving = i; renderStage(); await sleep(280); V.array.pop(); reset(); renderStage();
+    log(`Removed ${v} from the end. Fast, because nothing else moves.`); },
+
+  async mput(){ if (mapKeys().length >= 12) return log('The map is full in this demo (12 pairs). Delete one first.');
+    const k = readKey(WORDS.filter(w => !mapKeys().includes(w))), v = Math.floor(Math.random() * 99) + 1, b = hashOf(k) % NB;
+    V.hl.add(b); renderStage(); log(hashMsg(k)); await sleep(1400);
+    const bucket = V.map[b], ex = bucket.find(p => p[0] === k);
+    if (ex){ ex[1] = v; V.found = k; renderStage(); log(`"${k}" was already in bucket ${b}, so its value was updated to ${v}.`); }
+    else { bucket.push([k, v]); V.enter = k; renderStage();
+      log(`Stored ${k}: ${v} in bucket ${b}.` + (bucket.length > 1 ? ' That bucket already had a pair. This is called a collision, so they share it.' : '')); }
+    await sleep(1000); reset(); renderStage(); },
+  async mget(){ if (!mapKeys().length) return log('The map is empty. Put a word first.');
+    const k = readKey(mapKeys()), b = hashOf(k) % NB;
+    V.hl.add(b); renderStage(); log(hashMsg(k)); await sleep(1400);
+    const p = V.map[b].find(x => x[0] === k);
+    if (p){ V.found = k; renderStage(); log(`Found it: ${k} = ${p[1]}. Only bucket ${b} was checked, never the others. That is why it is O(1).`); }
+    else log(`"${k}" is not in bucket ${b}, so it is not in the map. Still only one bucket checked.`);
+    await sleep(1200); reset(); renderStage(); },
+  async mdel(){ if (!mapKeys().length) return log('The map is empty.');
+    const k = readKey(mapKeys()), b = hashOf(k) % NB;
+    V.hl.add(b); renderStage(); log(hashMsg(k)); await sleep(1200);
+    const idx = V.map[b].findIndex(x => x[0] === k);
+    if (idx < 0){ reset(); renderStage(); return log(`"${k}" is not in the map, so nothing was deleted.`); }
+    V.leaving = k; renderStage(); await sleep(300); V.map[b].splice(idx, 1); reset(); renderStage();
+    log(`Deleted "${k}" from bucket ${b}.`); },
+
+  async shuffle(){ V.sort = rand8(); V.sorted = new Set(); renderStage(); log('New random numbers. Pick a sort to watch.'); },
+  async bubble(){
+    const a = V.sort, n = a.length; let comps = 0; V.sorted = new Set();
+    for (let i = 0; i < n; i++){
+      let swapped = false;
+      for (let j = 0; j < n - 1 - i; j++){
+        comps++; V.hl = new Set([j, j + 1]); renderStage(); log(`Compare ${a[j]} and ${a[j + 1]}.`); await sleep(300);
+        if (a[j] > a[j + 1]){ [a[j], a[j + 1]] = [a[j + 1], a[j]]; swapped = true; renderStage(); log(`${a[j + 1]} is bigger, so swap them.`); await sleep(260); }
+      }
+      V.sorted.add(n - 1 - i);
+      if (!swapped){ for (let k = 0; k < n - i; k++) V.sorted.add(k); break; }
+    }
+    reset(); renderStage(); log(`Sorted with ${comps} comparisons. Each pass "bubbles" the biggest leftover number to the end.`); },
+  async insertion(){
+    const a = V.sort, n = a.length; let comps = 0; V.sorted = new Set([0]);
+    for (let i = 1; i < n; i++){
+      V.hl = new Set([i]); renderStage(); log(`Take ${a[i]} and slide it left until it fits.`); await sleep(420);
+      let j = i - 1;
+      while (j >= 0){
+        comps++;
+        if (a[j] <= a[j + 1]) break;
+        [a[j], a[j + 1]] = [a[j + 1], a[j]]; V.hl = new Set([j]); renderStage(); await sleep(280); j--;
+      }
+      for (let k = 0; k <= i; k++) V.sorted.add(k); reset(); renderStage();
+    }
+    log(`Sorted with ${comps} comparisons. The green part on the left is always in order.`); },
+
+  async bsnew(){ V.bs = newBs(); V.lo = V.hi = V.mid = null; renderStage(); log('New sorted list. Search for a number.'); },
+  async bs(){
+    const a = V.bs, n = a.length; const t = readVal(a); let lo = 0, hi = n - 1, steps = 0;
+    log(`Looking for ${t}.`); await sleep(500);
+    while (lo <= hi){
+      const mid = Math.floor((lo + hi) / 2); steps++;
+      V.lo = lo; V.hi = hi; V.mid = mid; renderStage(); log(`Step ${steps}: check the middle. It holds ${a[mid]}.`); await sleep(1000);
+      if (a[mid] === t){ V.found = mid; V.lo = V.hi = null; renderStage(); log(`Found ${t} in ${steps} step${steps > 1 ? 's' : ''}. Checking one by one could take up to ${n}.`); await sleep(1600); break; }
+      if (a[mid] < t){ log(`${a[mid]} is smaller than ${t}, so ${t} must be to the right. Throw away the left half.`); lo = mid + 1; }
+      else { log(`${a[mid]} is bigger than ${t}, so ${t} must be to the left. Throw away the right half.`); hi = mid - 1; }
+      await sleep(1300);
+    }
+    if (lo > hi) log(`${t} is not in the list. It took only ${steps} steps to be sure.`);
+    V.lo = V.hi = V.mid = null; reset(); renderStage(); },
+
+  async push(){ if (V.stack.length >= MAX) return log(`The stack is full in this demo (${MAX} items). Pop one first.`);
+    const v = readVal(); V.stack.push(v); V.enter = V.stack.length - 1; renderStage(); log(`Pushed ${v}. It is on top now, so it will be the first to leave.`); },
+  async pop(){ if (!V.stack.length) return log('Nothing to pop. The stack is empty.');
+    const i = V.stack.length - 1, v = V.stack[i]; V.leaving = i; renderStage(); await sleep(280); V.stack.pop(); reset(); renderStage();
+    log(`Popped ${v}. Last in, first out.`); },
+  async peek(){ if (!V.stack.length) return log('Nothing to peek at. The stack is empty.');
+    const i = V.stack.length - 1; V.hl.add(i); renderStage(); log(`The top is ${V.stack[i]}. Peek looks without removing.`); await sleep(1000); reset(); renderStage(); },
+
+  async enq(){ if (V.queue.length >= MAX) return log(`The queue is full in this demo (${MAX} items). Dequeue one first.`);
+    const v = readVal(); V.queue.push(v); V.enter = V.queue.length - 1; renderStage(); log(`Enqueued ${v} at the back. It waits behind ${V.queue.length - 1} item${V.queue.length === 2 ? '' : 's'}.`); },
+  async deq(){ if (!V.queue.length) return log('Nothing to dequeue. The queue is empty.');
+    const v = V.queue[0]; V.leaving = 0; renderStage(); await sleep(280); V.queue.shift(); reset(); renderStage();
+    log(`Dequeued ${v} from the front. First in, first out.`); },
+  async front(){ if (!V.queue.length) return log('The queue is empty.');
+    V.hl.add(0); renderStage(); log(`The front is ${V.queue[0]}. It leaves next.`); await sleep(1000); reset(); renderStage(); },
+
+  async head(){ if (V.list.length >= MAX) return log(`The list is full in this demo (${MAX} nodes). Remove one first.`);
+    const v = readVal(); V.list.unshift(v); V.enter = 0; renderStage(); log(`Added ${v} at the head. One step, no walking needed: O(1).`); },
+  async tail(){ if (V.list.length >= MAX) return log(`The list is full in this demo (${MAX} nodes). Remove one first.`);
+    const v = readVal();
+    for (let i = 0; i < V.list.length; i++){ V.hl = new Set([i]); renderStage(); log(`Walking to the end... at node ${i + 1}`); await sleep(380); }
+    reset(); V.list.push(v); V.enter = V.list.length - 1; renderStage();
+    log(`Added ${v} at the tail after walking ${V.list.length - 1} node${V.list.length === 2 ? '' : 's'}. That walk is why it is O(n).`); },
+  async find(){ if (!V.list.length) return log('The list is empty.');
+    const v = readVal(V.list);
+    for (let i = 0; i < V.list.length; i++){
+      V.hl = new Set([i]); renderStage(); await sleep(400);
+      if (V.list[i] === v){ reset(); V.found = i; renderStage(); log(`Found ${v} after checking ${i + 1} node${i ? 's' : ''}.`); await sleep(1200); reset(); renderStage(); return; }
+    }
+    reset(); renderStage(); log(`${v} is not in the list. Checked all ${V.list.length} nodes.`); },
+  async remove(){ if (!V.list.length) return log('The list is empty.');
+    const v = readVal(V.list);
+    for (let i = 0; i < V.list.length; i++){
+      V.hl = new Set([i]); renderStage(); await sleep(380);
+      if (V.list[i] === v){ reset(); V.leaving = i; renderStage(); await sleep(300); V.list.splice(i, 1); reset(); renderStage();
+        log(i === 0 ? `Removed ${v}. It was the head, so head now points to the next node.` : `Removed ${v}. The node before it now points past it.`); return; }
+    }
+    reset(); renderStage(); log(`${v} is not in the list, so nothing was removed.`); },
+
+  async ins(){ if (bstCount(V.bst) >= MAXTREE) return log(`The tree is full in this demo (${MAXTREE} nodes). Clear it to start over.`);
+    const v = readVal(); if (bstHas(V.bst, v)) return log(`${v} is already in the tree. A BST keeps each value once.`);
+    const steps = []; let n = V.bst;
+    while (n){ V.hl = new Set([n.v]); renderStage(); await sleep(420); steps.push(`${v < n.v ? 'left' : 'right'} at ${n.v}`); n = v < n.v ? n.l : n.r; }
+    V.bst = bstInsert(V.bst, v); reset(); V.found = v; renderStage();
+    log(steps.length ? `Inserted ${v}: went ${steps.join(', then ')}.` : `Inserted ${v} as the root.`);
+    await sleep(1000); reset(); renderStage(); },
+  async bfind(){ if (!V.bst) return log('The tree is empty.');
+    const v = readVal(bstVals(V.bst)); let n = V.bst, k = 0;
+    while (n){ k++; V.hl = new Set([n.v]); renderStage(); await sleep(450);
+      if (n.v === v){ reset(); V.found = v; renderStage(); log(`Found ${v} in ${k} step${k > 1 ? 's' : ''}. Each step skipped half of what was left.`); await sleep(1200); reset(); renderStage(); return; }
+      n = v < n.v ? n.l : n.r; }
+    reset(); renderStage(); log(`${v} is not in the tree. Checked ${k} node${k > 1 ? 's' : ''} and hit an empty spot.`); },
+  async walk(){ if (!V.bst) return log('The tree is empty.');
+    const vals = bstVals(V.bst), seen = [];
+    for (const v of vals){ V.hl = new Set([v]); seen.push(v); renderStage(); log(`In-order: ${seen.join(', ')}`); await sleep(400); }
+    reset(); renderStage(); log(`In-order: ${seen.join(', ')}. Left, node, right always comes out sorted.`); },
+
+  async clear(){ if (V.ds === 'bst') V.bst = null; else if (V.ds === 'map') V.map = emptyMap(); else V[V.ds] = []; renderStage(); log('Cleared. Add something to start again.'); }
+};
+
+/* ---------- practice ---------- */
+const PROBLEMS = [
+  { id: 'biggest', title: 'Find the biggest number', ds: 'Array', level: 'Beginner',
+    prompt: 'Given a list of numbers, return the biggest one. Do not use a built-in max function.',
+    example: 'biggest([4, 9, 2, 7]) -> 9',
+    hints: ['Imagine flipping through cards one at a time, remembering the biggest so far.', 'Start by assuming the first number is the biggest.', 'Loop through the rest. If a number is bigger than your current biggest, replace it.'],
+    big: 'O(n) time: you look at each number once. O(1) space.',
+    js: String.raw`function biggest(nums) {
+  let best = nums[0];
+  for (const n of nums) {
+    if (n > best) best = n;
+  }
+  return best;
+}`,
+    py: String.raw`def biggest(nums):
+    best = nums[0]
+    for n in nums:
+        if n > best:
+            best = n
+    return best` },
+  { id: 'letters', title: 'Count each letter', ds: 'Hash map', level: 'Beginner',
+    prompt: 'Given a word, return how many times each letter appears.',
+    example: 'countLetters("hello") -> { h: 1, e: 1, l: 2, o: 1 }',
+    hints: ['You need to pair each letter with a number. Which structure stores pairs?', 'Use the letter as the key and its count as the value.', 'For each letter: if it is already a key, add 1. If not, start it at 1.'],
+    big: 'O(n) time: one pass through the word.',
+    js: String.raw`function countLetters(word) {
+  const counts = {};
+  for (const ch of word) {
+    counts[ch] = (counts[ch] || 0) + 1;
+  }
+  return counts;
+}`,
+    py: String.raw`def count_letters(word):
+    counts = {}
+    for ch in word:
+        counts[ch] = counts.get(ch, 0) + 1
+    return counts` },
+  { id: 'dupe', title: 'Contains duplicate', ds: 'Hash set', level: 'Beginner',
+    prompt: 'Return true if any number appears more than once in the list.',
+    example: 'hasDuplicate([1, 2, 3, 1]) -> true\nhasDuplicate([1, 2, 3])    -> false',
+    hints: ['Comparing every pair works but gets slow: O(n²).', 'Keep a record of numbers you have already seen.', 'A set answers "have I seen this?" instantly. If yes, you found a duplicate.'],
+    big: 'O(n) time, O(n) space.',
+    js: String.raw`function hasDuplicate(nums) {
+  const seen = new Set();
+  for (const n of nums) {
+    if (seen.has(n)) return true;
+    seen.add(n);
+  }
+  return false;
+}`,
+    py: String.raw`def has_duplicate(nums):
+    seen = set()
+    for n in nums:
+        if n in seen:
+            return True
+        seen.add(n)
+    return False` },
+  { id: 'bsearch', title: 'Binary search', ds: 'Sorted array', level: 'Beginner',
+    prompt: 'Given a sorted list and a target, return the index of the target, or -1 if it is not there. Aim for O(log n).',
+    example: 'search([1, 3, 5, 8, 12], 8) -> 3\nsearch([1, 3, 5, 8, 12], 4) -> -1',
+    hints: ['Checking every item is O(n). The list being sorted is the clue.', 'Keep two markers, lo and hi, for the part of the list that could still hold the target.', 'Check the middle. If it is too small, move lo past it. Too big, move hi before it. Stop when lo passes hi.'],
+    big: 'O(log n) time, O(1) space.',
+    js: DS.bsearch.js, py: DS.bsearch.py },
+  { id: 'parens', title: 'Valid parentheses', ds: 'Stack', level: 'Easy',
+    prompt: 'Given a string of brackets ()[]{}, return true if every opening bracket is closed by the same type, in the right order.',
+    example: 'isValid("([]{})")  -> true\nisValid("(]")      -> false\nisValid("((")      -> false',
+    hints: ['The most recent opening bracket must be closed first. What structure gives you "most recent"?', 'Push opening brackets. On a closing bracket, pop and check it matches.', 'At the end, anything left on the stack was never closed.'],
+    big: 'O(n) time, O(n) space.',
+    js: String.raw`function isValid(s) {
+  const pairs = { ')': '(', ']': '[', '}': '{' };
+  const stack = [];
+  for (const ch of s) {
+    if (ch === '(' || ch === '[' || ch === '{') {
+      stack.push(ch);
+    } else if (pairs[ch]) {
+      if (stack.pop() !== pairs[ch]) return false;
+    }
+  }
+  return stack.length === 0;
+}`,
+    py: String.raw`def is_valid(s):
+    pairs = {')': '(', ']': '[', '}': '{'}
+    stack = []
+    for ch in s:
+        if ch in '([{':
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack.pop() != pairs[ch]:
+                return False
+    return not stack` },
+  { id: 'twostacks', title: 'Queue using two stacks', ds: 'Stack + Queue', level: 'Easy',
+    prompt: 'Build a queue (push, pop, peek, empty) using only two stacks.',
+    example: 'q.push(1); q.push(2)\nq.peek()  -> 1\nq.pop()   -> 1\nq.empty() -> false',
+    hints: ['Pouring one stack into another reverses the order.', 'Use an "inbox" stack for push and an "outbox" stack for pop.', 'Only pour inbox into outbox when outbox is empty.'],
+    big: 'Each item moves at most twice, so O(1) on average per operation.',
+    js: String.raw`class MyQueue {
+  constructor() { this.inbox = []; this.outbox = []; }
+  push(x) { this.inbox.push(x); }
+  peek() {
+    if (this.outbox.length === 0) {
+      while (this.inbox.length) this.outbox.push(this.inbox.pop());
+    }
+    return this.outbox[this.outbox.length - 1];
+  }
+  pop() { this.peek(); return this.outbox.pop(); }
+  empty() { return !this.inbox.length && !this.outbox.length; }
+}`,
+    py: String.raw`class MyQueue:
+    def __init__(self):
+        self.inbox, self.outbox = [], []
+
+    def push(self, x):
+        self.inbox.append(x)
+
+    def peek(self):
+        if not self.outbox:
+            while self.inbox:
+                self.outbox.append(self.inbox.pop())
+        return self.outbox[-1]
+
+    def pop(self):
+        self.peek()
+        return self.outbox.pop()
+
+    def empty(self):
+        return not self.inbox and not self.outbox` },
+  { id: 'reverse', title: 'Reverse a linked list', ds: 'Linked list', level: 'Easy',
+    prompt: 'Given the head of a singly linked list, reverse it and return the new head.',
+    example: '1 -> 2 -> 3 -> null\nbecomes\n3 -> 2 -> 1 -> null',
+    hints: ['You need to flip each arrow to point backwards.', 'Keep three pointers: prev, cur, and next.', 'Save cur.next before you overwrite it, or you lose the rest of the list.'],
+    big: 'O(n) time, O(1) space.',
+    js: String.raw`function reverseList(head) {
+  let prev = null, cur = head;
+  while (cur) {
+    const next = cur.next;  // save the rest
+    cur.next = prev;        // flip the arrow
+    prev = cur;
+    cur = next;
+  }
+  return prev;
+}`,
+    py: String.raw`def reverse_list(head):
+    prev, cur = None, head
+    while cur:
+        nxt = cur.next      # save the rest
+        cur.next = prev     # flip the arrow
+        prev = cur
+        cur = nxt
+    return prev` },
+  { id: 'middle', title: 'Middle of a linked list', ds: 'Linked list', level: 'Easy',
+    prompt: 'Return the middle node of a linked list. If there are two middles, return the second one.',
+    example: '1 -> 2 -> 3 -> 4 -> 5   -> node 3\n1 -> 2 -> 3 -> 4        -> node 3',
+    hints: ['You could count first, then walk again. Can you do it in one pass?', 'Use two pointers moving at different speeds.', 'When the fast pointer (2 steps) hits the end, the slow one (1 step) is in the middle.'],
+    big: 'O(n) time, O(1) space.',
+    js: String.raw`function middleNode(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+  }
+  return slow;
+}`,
+    py: String.raw`def middle_node(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow` },
+  { id: 'twosum', title: 'Two sum', ds: 'Hash map', level: 'Easy',
+    prompt: 'Given an array of numbers and a target, return the indexes of the two numbers that add up to the target.',
+    example: 'twoSum([2, 7, 11, 15], 9) -> [0, 1]\ntwoSum([3, 2, 4], 6)      -> [1, 2]',
+    hints: ['Checking every pair works but is O(n²).', 'For each number, the partner you need is target minus that number.', 'Store numbers you have seen in a hash map: value to index.'],
+    big: 'O(n) time, O(n) space.',
+    js: String.raw`function twoSum(nums, target) {
+  const seen = new Map();          // value -> index
+  for (let i = 0; i < nums.length; i++) {
+    const need = target - nums[i];
+    if (seen.has(need)) return [seen.get(need), i];
+    seen.set(nums[i], i);
+  }
+  return [];
+}`,
+    py: String.raw`def two_sum(nums, target):
+    seen = {}                      # value -> index
+    for i, n in enumerate(nums):
+        need = target - n
+        if need in seen:
+            return [seen[need], i]
+        seen[n] = i
+    return []` },
+  { id: 'depth', title: 'Maximum depth of a tree', ds: 'Binary tree', level: 'Easy',
+    prompt: 'Return how many levels a binary tree has, counting from the root down to the deepest leaf.',
+    example: '    3\n   / \\\n  9   20\n     /  \\\n    15   7\n-> 3',
+    hints: ['An empty tree has depth 0.', 'The depth of a node is 1 plus the deeper of its two children.', 'That definition is recursive. Let the function call itself on left and right.'],
+    big: 'O(n) time, O(h) space for the call stack, where h is the height.',
+    js: String.raw`function maxDepth(root) {
+  if (!root) return 0;
+  return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+}`,
+    py: String.raw`def max_depth(root):
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))` }
+];
+const P = { open: null, hints: {}, sol: {} };
+
+function renderPractice(){
+  $('#probList').innerHTML = PROBLEMS.map(p => {
+    const open = P.open === p.id, done = saved.solved[p.id], h = P.hints[p.id] || 0;
+    let body = '';
+    if (open){
+      body = `<div class="prob-body"><p>${esc(p.prompt)}</p><pre>${esc(p.example)}</pre>` +
+        p.hints.slice(0, h).map((t, i) => `<div class="hint"><strong>Hint ${i + 1}:</strong> ${esc(t)}</div>`).join('') +
+        (P.sol[p.id] ? `<pre>${esc(p[saved.lang])}</pre><p><strong>Speed:</strong> ${esc(p.big)}</p>` : '') +
+        `<div class="btnrow">` +
+        (h < p.hints.length ? `<button class="btn" data-hint="${p.id}">Show hint ${h + 1} of ${p.hints.length}</button>` : '') +
+        (!P.sol[p.id] ? `<button class="btn" data-sol="${p.id}">Show solution</button>` : '') +
+        `<button class="btn primary" data-solve="${p.id}">${done ? 'Mark as not solved' : 'Mark as solved'}</button></div></div>`;
+    }
+    return `<article class="prob${open ? ' open' : ''}"><button class="prob-head" data-open="${p.id}" aria-expanded="${open}"><span>${esc(p.title)}<span class="meta">${p.ds}, ${p.level}</span></span><span class="done${done ? ' yes' : ''}" aria-label="${done ? 'Solved' : 'Not solved'}">${done ? '✓' : ''}</span></button>${body}</article>`;
+  }).join('');
+}
+
+/* ---------- quiz + flashcards ---------- */
+const QUIZ = [
+  { q: 'What is the index of the first item in an array?', o: ['1', '0', '-1', 'It depends on the value'], a: 1, e: 'Counting starts at 0. A list of 4 items has boxes 0, 1, 2, 3.' },
+  { q: 'Why is inserting at the start of an array slow?', o: ['Arrays sort themselves first', 'Every other item has to move over by one', 'The computer searches for free space', 'It is not slow'], a: 1, e: 'Box 0 is taken, so every item shifts right to make room. More items means more moving: O(n).' },
+  { q: 'In a hash map of names to phone numbers, what is the name?', o: ['The value', 'The key', 'The bucket', 'The index'], a: 1, e: 'You look things up by the key (the name) and get back the value (the number).' },
+  { q: 'What is a collision in a hash map?', o: ['Two keys land in the same bucket', 'The map runs out of memory', 'A key is deleted twice', 'Two values are equal'], a: 0, e: 'Different keys can hash to the same bucket. They share it, which slows lookups a little.' },
+  { q: 'What must be true before you can use binary search?', o: ['The list is sorted', 'The list is short', 'The list has no zeros', 'The list is in a hash map'], a: 0, e: 'Binary search throws away half the list based on the middle value. That only works if the list is in order.' },
+  { q: 'About how many steps does binary search need for 1,000,000 sorted items?', o: ['1,000,000', '500,000', 'About 20', '1'], a: 2, e: 'Each step cuts the list in half. Halving a million about 20 times gets you down to one item.' },
+  { q: 'Bubble sort on n items takes about...', o: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'], a: 3, e: 'It compares neighbors pass after pass. Double the items and the work roughly quadruples.' },
+  { q: 'Which structure is last in, first out?', o: ['Queue', 'Stack', 'Linked list', 'Hash map'], a: 1, e: 'A stack removes the most recently added item first, like the top plate on a pile.' },
+  { q: 'Which structure is first in, first out?', o: ['Stack', 'Binary tree', 'Queue', 'Array'], a: 2, e: 'A queue serves items in the order they arrived, like a checkout line.' },
+  { q: 'What is the time to access arr[500] in an array?', o: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'], a: 0, e: 'Arrays sit in one block of memory, so the computer jumps straight to any index.' },
+  { q: 'What is the time to find the 500th node in a linked list?', o: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'], a: 2, e: 'There are no indexes. You must walk node by node from the head.' },
+  { q: 'Which operation is O(1) on a singly linked list?', o: ['Add to head', 'Add to tail without a tail pointer', 'Find a value', 'Remove the last node'], a: 0, e: 'A new head just points to the old head. No walking needed.' },
+  { q: 'In a BST, where do values smaller than a node go?', o: ['Right subtree', 'Left subtree', 'Either side', 'They become the parent'], a: 1, e: 'Smaller left, bigger right. That rule is what makes searching fast.' },
+  { q: 'An in-order walk of a BST gives values in what order?', o: ['Random', 'Insertion order', 'Sorted ascending', 'Level by level'], a: 2, e: 'Left subtree, then node, then right subtree always comes out sorted.' },
+  { q: 'Inserting 1, 2, 3, 4, 5 into an empty BST makes search take...', o: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'], a: 2, e: 'Sorted input makes a lopsided tree, basically a linked list. Self-balancing trees fix this.' },
+  { q: 'Which structure does the browser back button behave like?', o: ['Queue', 'Stack', 'Hash map', 'Heap'], a: 1, e: 'The page you visited most recently is the first one you go back to.' },
+  { q: 'Average lookup time in a hash map?', o: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'], a: 0, e: 'The key is hashed to a bucket directly. Collisions can make the worst case O(n).' },
+  { q: 'Breadth-first search on a tree or graph uses which structure?', o: ['Stack', 'Queue', 'Hash map only', 'Linked list only'], a: 1, e: 'BFS visits level by level, processing nodes in the order they were discovered.' },
+  { q: 'Why is Python list.pop(0) a bad queue dequeue?', o: ['It removes the wrong item', 'It is O(n), every item shifts left', 'It raises an error', 'It sorts the list'], a: 1, e: 'Removing the first item shifts everything over. Use collections.deque and popleft() instead.' }
+];
+const CARDS = [
+  ['Stack', 'Add and remove from the top only. Last in, first out. Push, pop, peek are O(1).'],
+  ['Queue', 'Join at the back, leave from the front. First in, first out.'],
+  ['Array', 'Items in one block of memory. Instant access by index, slow inserts in the middle.'],
+  ['Linked list', 'Nodes that each point to the next. Fast insert at the head, slow lookups.'],
+  ['Hash map', 'Stores key and value pairs. Average O(1) to add, find, or delete.'],
+  ['Binary search tree', 'Smaller values left, bigger right. Find and insert are O(log n) when balanced.'],
+  ['Sorting', 'Putting items in order. Simple sorts are O(n²). Built-in sorts are O(n log n).'],
+  ['Binary search', 'Find a value in a sorted list by checking the middle and throwing away half each step. O(log n).'],
+  ['Big O', 'How work grows as the input grows. O(1) stays flat, O(n) grows in a straight line.'],
+  ['O(log n)', 'Each step cuts the problem in half. 1 million items takes about 20 steps.'],
+  ['Two pointers', 'Move two indexes through data, often at different speeds, to avoid nested loops.'],
+  ['Recursion', 'A function that calls itself on a smaller piece until it hits a base case.']
+];
+const Q = { mode: 'quiz', order: [], i: 0, score: 0, picked: null, card: 0, flipped: false };
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function startQuiz(){ Q.order = shuffle(QUIZ.map((_, i) => i)); Q.i = 0; Q.score = 0; Q.picked = null; }
+startQuiz();
+
+function renderQuiz(){
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === Q.mode));
+  const area = $('#quizArea');
+  if (Q.mode === 'cards'){
+    const [t, d] = CARDS[Q.card];
+    area.innerHTML = `<div class="qcard flash" id="flash" role="button" tabindex="0" aria-label="Flip card">${Q.flipped ? `<div class="def">${esc(d)}</div>` : `<div class="term">${esc(t)}</div>`}<div class="tap">${Q.flipped ? 'Tap to see the term' : 'Tap to see the meaning'}</div></div>
+      <div class="btnrow" style="justify-content:space-between;align-items:center"><button class="btn" data-card="-1">Previous</button><span class="qnum">${Q.card + 1} of ${CARDS.length}</span><button class="btn primary" data-card="1">Next</button></div>`;
+    return;
+  }
+  if (Q.i >= Q.order.length){
+    const msg = Q.score === QUIZ.length ? 'Perfect score.' : Q.score >= Math.ceil(QUIZ.length * 0.75) ? 'Strong. Review the ones you missed in the visualizer.' : 'Go play with the visualizer, then try again.';
+    area.innerHTML = `<div class="qcard"><div class="qnum">Your score</div><div class="score">${Q.score}/${QUIZ.length}</div><p>${msg}</p><div class="btnrow"><button class="btn primary" data-restart>Try again</button></div></div>`;
+    return;
+  }
+  const item = QUIZ[Q.order[Q.i]];
+  area.innerHTML = `<div class="qcard"><div class="qnum">Question ${Q.i + 1} of ${QUIZ.length}. Score ${Q.score}</div><div class="qtext">${esc(item.q)}</div>` +
+    item.o.map((o, k) => {
+      let c = 'opt'; if (Q.picked !== null){ if (k === item.a) c += ' right'; else if (k === Q.picked) c += ' wrong'; }
+      return `<button class="${c}" data-pick="${k}" ${Q.picked !== null ? 'disabled' : ''}>${esc(o)}</button>`;
+    }).join('') +
+    (Q.picked !== null ? `<div class="explain"><strong>${Q.picked === item.a ? 'Correct.' : 'Not quite.'}</strong> ${esc(item.e)}</div><div class="btnrow"><button class="btn primary" data-next>${Q.i + 1 === QUIZ.length ? 'See score' : 'Next question'}</button></div>` : '') + '</div>';
+}
+
+/* ---------- wiring ---------- */
+let tab = 'viz';
+function setTab(t){
+  tab = t;
+  ['viz', 'practice', 'quiz'].forEach(k => $('#view-' + k).hidden = k !== t);
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  if (t === 'practice') renderPractice(); if (t === 'quiz') renderQuiz();
+  window.scrollTo(0, 0);
+}
+function setLang(l){
+  saved.lang = l; save();
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
+  $('#dsCode').textContent = DS[V.ds][l];
+  if (tab === 'practice') renderPractice();
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button, #flash'); if (!b) return;
+  const d = b.dataset;
+  if (d.tab) setTab(d.tab);
+  else if (d.lang) setLang(d.lang);
+  else if (d.ds && !V.busy){ V.ds = d.ds; reset(); renderViz(); }
+  else if (d.op) runOp(d.op);
+  else if (d.open){ P.open = P.open === d.open ? null : d.open; renderPractice(); }
+  else if (d.hint){ P.hints[d.hint] = (P.hints[d.hint] || 0) + 1; renderPractice(); }
+  else if (d.sol){ P.sol[d.sol] = true; renderPractice(); }
+  else if (d.solve){ saved.solved[d.solve] = !saved.solved[d.solve]; save(); renderPractice(); }
+  else if (d.mode){ Q.mode = d.mode; renderQuiz(); }
+  else if (d.pick !== undefined && Q.picked === null){
+    Q.picked = +d.pick; if (Q.picked === QUIZ[Q.order[Q.i]].a) Q.score++; renderQuiz();
+  }
+  else if ('next' in d){ Q.i++; Q.picked = null;
+    if (Q.i >= QUIZ.length && Q.score > saved.best){ saved.best = Q.score; save(); }
+    renderQuiz(); }
+  else if ('restart' in d){ startQuiz(); renderQuiz(); }
+  else if (d.card){ Q.card = (Q.card + +d.card + CARDS.length) % CARDS.length; Q.flipped = false; renderQuiz(); }
+  else if (b.id === 'flash'){ Q.flipped = !Q.flipped; renderQuiz(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'flash' && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); Q.flipped = !Q.flipped; renderQuiz(); }
+  if (e.target.id === 'val' && e.key === 'Enter'){ const first = OPS[V.ds][0][0]; runOp(first); }
+});
+
+setLang(saved.lang);
+renderViz();
+setTab('viz');
+renderProgress();
+</script>
+</body>
+</html>
